@@ -80,10 +80,6 @@ public class MovementHandler extends InputAdapter {
         else return true;
     }
 
-    public void setCheckpoint(){
-        checkpointLayer.setCell(activePlayer.getX(), activePlayer.getY(), activePlayer.getCell());
-    }
-
     @Override
     public boolean keyDown(int keycode) {
         clearLayer();
@@ -98,6 +94,10 @@ public class MovementHandler extends InputAdapter {
                 break;
             case Input.Keys.RIGHT:
                 activePlayer.rotateRight();
+                if (!onBoard(activePlayer)) activePlayer.resetPosition();
+                break;
+            case Input.Keys.C:
+                activePlayer.setBackup(activePlayer.getX(),activePlayer.getY());
                 if (!onBoard(activePlayer)) activePlayer.resetPosition();
                 break;
             case Input.Keys.SPACE:
@@ -115,7 +115,6 @@ public class MovementHandler extends InputAdapter {
     }
 
     private void moveForward() {
-
         activePlayer.moveForward();
     }
 }
