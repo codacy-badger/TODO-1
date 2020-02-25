@@ -4,8 +4,9 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import inf112.core.board.GameBoard;
+import inf112.core.player.Direction;
 import inf112.core.player.Player;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,19 +17,23 @@ import java.util.List;
  * @author eskil
  */
 public class MovementHandler extends InputAdapter {
-
+    private GameBoard board;
     private List<Player> players;
     private Player activePlayer;                 // movement will affect this player. Should be changed actively
     private TiledMapTileLayer playerLayer;       // layer in which all player cells are placed (for graphics)
-    private TiledMapTileLayer checkpointLayer;
+    private TiledMapTileLayer backupLayer;
+    private CollisionHandler collisionHandler;
 
-    public MovementHandler() {
-        this(new TiledMapTileLayer(0,0,0,0));
+    public MovementHandler(GameBoard board) {
+        this.board = board;
+        this.playerLayer = board.getPlayers();
+        this.backupLayer = board.getBackups();
+        this.collisionHandler = new CollisionHandler(board);
+        this.players = new ArrayList<>();
     }
 
-    public MovementHandler(TiledMapTileLayer playerLayer) {
-        this.playerLayer = playerLayer;
-        this.players = new ArrayList<>();
+    public MovementHandler() {
+        this(new GameBoard());
     }
 
     public boolean add(Player player) {
@@ -85,16 +90,13 @@ public class MovementHandler extends InputAdapter {
         clearLayer();
         switch (keycode) {
             case Input.Keys.UP:
-                activePlayer.moveForward();
-                if (!onBoard(activePlayer)) activePlayer.resetPosition();
+                moveForward();
                 break;
             case Input.Keys.LEFT:
                 activePlayer.rotateLeft();
-                if (!onBoard(activePlayer)) activePlayer.resetPosition();
                 break;
             case Input.Keys.RIGHT:
                 activePlayer.rotateRight();
-                if (!onBoard(activePlayer)) activePlayer.resetPosition();
                 break;
             case Input.Keys.C:
                 activePlayer.setBackup(activePlayer.getX(),activePlayer.getY());
@@ -102,7 +104,6 @@ public class MovementHandler extends InputAdapter {
                 break;
             case Input.Keys.SPACE:
                 activePlayer.resetPosition();
-                if (!onBoard(activePlayer)) activePlayer.resetPosition();
                 break;
             case Input.Keys.S:
                 // TODO switch active player
@@ -116,5 +117,10 @@ public class MovementHandler extends InputAdapter {
 
     private void moveForward() {
         activePlayer.moveForward();
+        if (!onBoard(activePlayer)) {
+            activePlayer.resetPosition();
+            activePlayer.setDirection(Direction.NORTH);
+            activePlayer.getCell().setRotation(activePlayer.getDirection().getCellRotation());
+        }
     }
 }
